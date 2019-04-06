@@ -210,8 +210,8 @@ public class LogicalDeletePlugin extends BasePlugin {
                             this.logicalDeleteValue = this.logicalDeleteValue.replaceAll("F|f", "");
                         }
 
-                        enumInfo.addItem(this.logicalUnDeleteConstName, "未删除", this.logicalUnDeleteValue);
-                        enumInfo.addItem(this.logicalDeleteConstName, "已删除", this.logicalDeleteValue);
+                        enumInfo.addItem(this.logicalUnDeleteConstName, "DELETE", this.logicalUnDeleteValue);
+                        enumInfo.addItem(this.logicalDeleteConstName, "NOT DELETE", this.logicalDeleteValue);
                         this.logicalDeleteEnum = enumInfo.generateEnum(commentGenerator, introspectedTable);
                     }
                 }
