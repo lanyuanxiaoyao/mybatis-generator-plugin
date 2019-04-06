@@ -6,6 +6,9 @@ import com.itfsw.mybatis.generator.plugins.utils.JavaElementGeneratorTools;
 import org.mybatis.generator.api.IntrospectedTable;
 import org.mybatis.generator.api.dom.java.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ExampleModelEnhancedPlugin extends BasePlugin {
 
     @Override
@@ -39,7 +42,7 @@ public class ExampleModelEnhancedPlugin extends BasePlugin {
         );
         commentGenerator.addGeneralMethodComment(method, introspectedTable);
 
-        StringBuilder builder = new StringBuilder();
+        List<String> bodyLine = new ArrayList<>();
         introspectedTable.getAllColumns()
                 .forEach(column -> {
                     String javaProperty = "record." + generateGetter(column.getJavaProperty());
@@ -47,15 +50,12 @@ public class ExampleModelEnhancedPlugin extends BasePlugin {
                     if (!"String".equalsIgnoreCase(column.getFullyQualifiedJavaType().getShortName())) {
                         escapeJavaProperty = "String.valueOf(" + javaProperty + ")";
                     }
-                    builder.append("if (").append(javaProperty).append(" != null && !\"\".equalsIgnoreCase(").append(escapeJavaProperty).append(")) {")
-                            .append("  addCriterion(\"").append(column.getActualColumnName()).append(" ").append(keyword).append(" \\\"\" + ").append(javaProperty).append(" + \"\\\"\");")
-                            .append("}\n");
+                    bodyLine.add("if (" + javaProperty + " != null && !" + escapeJavaProperty + ".isEmpty()) {");
+                    bodyLine.add("addCriterion(\"" + column.getActualColumnName() + " " + keyword + " \\\"\" + " + javaProperty + " + \"\\\"\");");
+                    bodyLine.add("}");
                 });
-        JavaElementGeneratorTools.generateMethodBody(
-                method,
-                builder.toString(),
-                "return (Criteria) this;"
-        );
+        bodyLine.add("return (Criteria) this;");
+        method.addBodyLines(bodyLine);
         return method;
     }
 
@@ -74,7 +74,7 @@ public class ExampleModelEnhancedPlugin extends BasePlugin {
         );
         commentGenerator.addGeneralMethodComment(method, introspectedTable);
 
-        StringBuilder builder = new StringBuilder();
+        List<String> bodyLine = new ArrayList<>();
         introspectedTable.getAllColumns()
                 .forEach(column -> {
                     String startJavaProperty = "start." + generateGetter(column.getJavaProperty());
@@ -85,16 +85,12 @@ public class ExampleModelEnhancedPlugin extends BasePlugin {
                         startEscapeJavaProperty = "String.valueOf(" + startJavaProperty + ")";
                         endEscapeJavaProperty = "String.valueOf(" + endJavaProperty + ")";
                     }
-                    builder.append("if ((").append(startJavaProperty).append(" != null && !\"\".equalsIgnoreCase(").append(startEscapeJavaProperty).append(")) && (")
-                            .append(endJavaProperty).append(" != null && !\"\".equalsIgnoreCase(").append(endEscapeJavaProperty).append("))) {")
-                            .append("  addCriterion(\"").append(column.getActualColumnName()).append(" ").append(keyword).append(" \" + ").append(startJavaProperty).append(" + \" and \" + ").append(endJavaProperty).append(");")
-                            .append("}\n");
+                    bodyLine.add("if ((" + startJavaProperty + " != null && !" + startEscapeJavaProperty + ".isEmpty()) && (" + endJavaProperty + " != null && !" + endEscapeJavaProperty + ".isEmpty())) {");
+                    bodyLine.add("addCriterion(\"" + column.getActualColumnName() + " " + keyword + " \\\"\" + " + startJavaProperty + " + \"\\\" and \\\"\" + " + endJavaProperty + " + \"\\\"\");");
+                    bodyLine.add("}");
                 });
-        JavaElementGeneratorTools.generateMethodBody(
-                method,
-                builder.toString(),
-                "return (Criteria) this;"
-        );
+        bodyLine.add("return (Criteria) this;");
+        method.addBodyLines(bodyLine);
         return method;
     }
 

@@ -6,8 +6,8 @@ import com.itfsw.mybatis.generator.plugins.utils.JavaElementGeneratorTools;
 import org.mybatis.generator.api.IntrospectedTable;
 import org.mybatis.generator.api.dom.java.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ExampleMapEnhancedPlugin extends BasePlugin {
 
@@ -42,22 +42,19 @@ public class ExampleMapEnhancedPlugin extends BasePlugin {
         );
         commentGenerator.addGeneralMethodComment(method, introspectedTable);
 
-        StringBuilder builder = new StringBuilder();
+        List<String> bodyLine = new ArrayList<>();
         introspectedTable.getAllColumns()
                 .forEach(column -> {
                     String javaProperty = column.getJavaProperty();
-                    builder.append("if (map.containsKey(\"").append(javaProperty).append("\")) {")
-                            .append("String ").append(javaProperty).append(" = map.get(\"").append(javaProperty).append("\");")
-                            .append("if (").append(javaProperty).append(" != null && !").append(javaProperty).append(".isEmpty()) {")
-                            .append("addCriterion(\"").append(column.getActualColumnName()).append(" ").append(keyword).append(" \\\"\" + ").append(javaProperty).append(" + \"\\\"\");")
-                            .append("}")
-                            .append("}");
+                    bodyLine.add("if (map.containsKey(\"" + javaProperty + "\")) {");
+                    bodyLine.add("String " + javaProperty + " = map.get(\"" + javaProperty + "\");");
+                    bodyLine.add("if (" + javaProperty + " != null && !" + javaProperty + ".isEmpty()) {");
+                    bodyLine.add("addCriterion(\"" + column.getActualColumnName() + " " + keyword + " \\\"\" + " + javaProperty + " + \"\\\"\");");
+                    bodyLine.add("}");
+                    bodyLine.add("}");
                 });
-        JavaElementGeneratorTools.generateMethodBody(
-                method,
-                builder.toString(),
-                "return (Criteria) this;"
-        );
+        bodyLine.add("return (Criteria) this;");
+        method.addBodyLines(bodyLine);
         return method;
     }
 
@@ -76,26 +73,23 @@ public class ExampleMapEnhancedPlugin extends BasePlugin {
         );
         commentGenerator.addGeneralMethodComment(method, introspectedTable);
 
-        StringBuilder builder = new StringBuilder();
+        List<String> bodyLine = new ArrayList<>();
         introspectedTable.getAllColumns()
                 .forEach(column -> {
                     String startJavaProperty = column.getJavaProperty();
                     String endJavaProperty = column.getJavaProperty();
                     String startEscapeJavaProperty = "start" + generateCamel(startJavaProperty);
                     String endEscapeJavaProperty = "end" + generateCamel(endJavaProperty);
-                    builder.append("if (start.containsKey(\"").append(startJavaProperty).append("\") && end.containsKey(\"").append(endJavaProperty).append("\")) {")
-                            .append("String ").append(startEscapeJavaProperty).append(" = start.get(\"").append(startJavaProperty).append("\");")
-                            .append("String ").append(endEscapeJavaProperty).append(" = end.get(\"").append(endJavaProperty).append("\");")
-                            .append("if ((").append(startEscapeJavaProperty).append(" != null && !").append(startEscapeJavaProperty).append(".isEmpty()) && (").append(endEscapeJavaProperty).append(" != null && !").append(endEscapeJavaProperty).append(".isEmpty())) {")
-                            .append("addCriterion(\"").append(column.getActualColumnName()).append(" between \\\"\" + ").append(startEscapeJavaProperty).append(" + \"\\\" and \\\"\" + ").append(endEscapeJavaProperty).append(" + \"\\\"\");")
-                            .append("}")
-                            .append("}");
+                    bodyLine.add("if (start.containsKey(\"" + startJavaProperty + "\") && end.containsKey(\"" + endJavaProperty + "\")) {");
+                    bodyLine.add("String " + startEscapeJavaProperty + " = start.get(\"" + startJavaProperty + "\");");
+                    bodyLine.add("String " + endEscapeJavaProperty + " = end.get(\"" + endJavaProperty + "\");");
+                    bodyLine.add("if ((" + startEscapeJavaProperty + " != null && !" + startEscapeJavaProperty + ".isEmpty()) && (" + endEscapeJavaProperty + " != null && !" + endEscapeJavaProperty + ".isEmpty())) {");
+                    bodyLine.add("addCriterion(\"" + column.getActualColumnName() + " " + keyword + " \\\"\" + " + startEscapeJavaProperty + " + \"\\\" and \\\"\" + " + endEscapeJavaProperty + " + \"\\\"\");");
+                    bodyLine.add("}");
+                    bodyLine.add("}");
                 });
-        JavaElementGeneratorTools.generateMethodBody(
-                method,
-                builder.toString(),
-                "return (Criteria) this;"
-        );
+        bodyLine.add("return (Criteria) this;");
+        method.addBodyLines(bodyLine);
         return method;
     }
 
