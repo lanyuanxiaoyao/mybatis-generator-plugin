@@ -11,6 +11,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+/**
+ * 根据数据库约束条件自动加载实体类字段注解(@NotNull, @NotBlank, @Max, @Min)
+ *
+ * @author LanyuanXiaoyao
+ */
 public class AutoTableFieldAnnotation extends BasePlugin {
 
     public static final String INTEGER = "integer";
