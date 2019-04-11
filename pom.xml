@@ -248,7 +248,7 @@
         <connection>scm:git:https://github.com/itfsw/mybatis-generator-plugin.git</connection>
         <developerConnection>scm:git:https://github.com/itfsw/mybatis-generator-plugin.git</developerConnection>
         <url>https://github.com/itfsw/mybatis-generator-plugin</url>
-      <tag>V1.3.7</tag>
+      <tag>V1.2.6</tag>
   </scm>
 
     <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++distribution++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
