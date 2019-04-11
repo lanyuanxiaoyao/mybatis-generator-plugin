@@ -43,6 +43,7 @@ public class ExampleMapEnhancedPlugin extends BasePlugin {
         commentGenerator.addGeneralMethodComment(method, introspectedTable);
 
         List<String> bodyLine = new ArrayList<>();
+        bodyLine.add("if (map != null && !map.isEmpty()) {");
         introspectedTable.getAllColumns()
                 .forEach(column -> {
                     String javaProperty = column.getJavaProperty();
@@ -53,6 +54,7 @@ public class ExampleMapEnhancedPlugin extends BasePlugin {
                     bodyLine.add("}");
                     bodyLine.add("}");
                 });
+        bodyLine.add("}");
         bodyLine.add("return (Criteria) this;");
         method.addBodyLines(bodyLine);
         return method;
@@ -74,6 +76,7 @@ public class ExampleMapEnhancedPlugin extends BasePlugin {
         commentGenerator.addGeneralMethodComment(method, introspectedTable);
 
         List<String> bodyLine = new ArrayList<>();
+        bodyLine.add("if ((start != null && !start.isEmpty()) && (end != null && !end.isEmpty())) {");
         introspectedTable.getAllColumns()
                 .forEach(column -> {
                     String startJavaProperty = column.getJavaProperty();
@@ -88,6 +91,7 @@ public class ExampleMapEnhancedPlugin extends BasePlugin {
                     bodyLine.add("}");
                     bodyLine.add("}");
                 });
+        bodyLine.add("}");
         bodyLine.add("return (Criteria) this;");
         method.addBodyLines(bodyLine);
         return method;
