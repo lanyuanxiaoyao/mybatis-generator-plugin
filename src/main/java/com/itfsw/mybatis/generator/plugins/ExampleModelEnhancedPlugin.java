@@ -9,6 +9,11 @@ import org.mybatis.generator.api.dom.java.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 根据实体生成 Example 查询增强方法, 允许传入一个实体作为组合查询条件
+ *
+ * @author LanyuanXiaoyao
+ */
 public class ExampleModelEnhancedPlugin extends BasePlugin {
 
     @Override
