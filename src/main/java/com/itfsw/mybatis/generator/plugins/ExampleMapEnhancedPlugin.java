@@ -36,6 +36,8 @@ public class ExampleMapEnhancedPlugin extends BasePlugin {
         FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod("<>", "andMapNotEqualTo", introspectedTable));
         FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod("like", "andMapLike", introspectedTable));
         FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod("not like", "andMapNotLike", introspectedTable));
+        FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod(">", "andMapGreaterThan", introspectedTable));
+        FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod("<", "andMapLessThan", introspectedTable));
     }
 
     private Method generateEqualAndLikeMethod(String keyword, String methodName, IntrospectedTable introspectedTable) {
