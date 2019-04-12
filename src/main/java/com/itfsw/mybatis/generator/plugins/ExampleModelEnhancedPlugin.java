@@ -36,6 +36,8 @@ public class ExampleModelEnhancedPlugin extends BasePlugin {
         FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod("<>", "andModelNotEqualTo", introspectedTable));
         FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod("like", "andModelLike", introspectedTable));
         FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod("not like", "andModelNotLike", introspectedTable));
+        FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod(">", "andModelGreaterThan", introspectedTable));
+        FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod("<", "andModelLessThan", introspectedTable));
     }
 
     private Method generateEqualAndLikeMethod(String keyword, String methodName, IntrospectedTable introspectedTable) {
