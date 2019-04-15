@@ -1,0 +1,116 @@
+package com.itfsw.mybatis.generator.plugins;
+
+import com.itfsw.mybatis.generator.plugins.utils.BasePlugin;
+import com.itfsw.mybatis.generator.plugins.utils.FormatTools;
+import com.itfsw.mybatis.generator.plugins.utils.JavaElementGeneratorTools;
+import org.mybatis.generator.api.IntrospectedColumn;
+import org.mybatis.generator.api.IntrospectedTable;
+import org.mybatis.generator.api.dom.java.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * @author ZhangJiacheng
+ * @date 2019-04-14
+ */
+public class GenerateSqlDirectly extends BasePlugin {
+
+    private static final Logger logger = LoggerFactory.getLogger(GenerateSqlDirectly.class);
+
+    @Override
+    public boolean modelExampleClassGenerated(TopLevelClass topLevelClass, IntrospectedTable introspectedTable) {
+        topLevelClass.getInnerClasses()
+                .stream()
+                .filter(innerClass -> "GeneratedCriteria".equalsIgnoreCase(innerClass.getType().getShortName()))
+                .findFirst()
+                .ifPresent(innerClass -> {
+                    generate(topLevelClass, innerClass, introspectedTable);
+                });
+        return true;
+    }
+
+    private void generate(TopLevelClass topLevelClass, InnerClass innerClass, IntrospectedTable introspectedTable) {
+        topLevelClass.addImportedType("java.util.List");
+        topLevelClass.addImportedType("java.util.Map");
+        topLevelClass.addImportedType("java.util.stream.Stream");
+        Method method = JavaElementGeneratorTools.generateMethod(
+                "andFilter",
+                JavaVisibility.PUBLIC,
+                FullyQualifiedJavaType.getCriteriaInstance(),
+                new Parameter(new FullyQualifiedJavaType("java.util.List<java.util.Map<String, Object>>"), "filters")
+        );
+        commentGenerator.addGeneralMethodComment(method, introspectedTable);
+
+        List<String> bodyLines = new ArrayList<>();
+        String columnNames = introspectedTable.getAllColumns()
+                .stream()
+                .map(IntrospectedColumn::getActualColumnName)
+                .collect(Collectors.joining("\",\""));
+        columnNames = "\"" + columnNames + "\"";
+        bodyLines.add("String[] columnNames = new String[]{" + columnNames + "};");
+        bodyLines.add("filters.forEach(filter -> {");
+        bodyLines.add("Object value = filter.get(\"value\");");
+        bodyLines.add("String field = (String) filter.get(\"field\");");
+        bodyLines.add("if (Stream.of(columnNames).allMatch(s -> s.equalsIgnoreCase(field))) {");
+        bodyLines.add("return;");
+        bodyLines.add("}");
+        bodyLines.add("String operator = (String) filter.get(\"operator\");");
+        bodyLines.add("if (\"EQUALS\".equalsIgnoreCase(operator)) { ");
+        bodyLines.add("String valueString = (String) value;");
+        bodyLines.add("addCriterion(field + \" = \\\"\" + valueString + \"\\\"\");");
+        bodyLines.add("}");
+        bodyLines.add("if (\"NOT_EQUALS\".equalsIgnoreCase(operator)) { ");
+        bodyLines.add("String valueString = (String) value;");
+        bodyLines.add("addCriterion(field + \" <> \\\"\" + valueString + \"\\\"\");");
+        bodyLines.add("}");
+        bodyLines.add("if (\"LIKE\".equalsIgnoreCase(operator)) { ");
+        bodyLines.add("String valueString = (String) value;");
+        bodyLines.add("addCriterion(field + \" like \\\"\" + valueString + \"\\\"\");");
+        bodyLines.add("}");
+        bodyLines.add("if (\"NOT_LIKE\".equalsIgnoreCase(operator)) { ");
+        bodyLines.add("String valueString = (String) value;");
+        bodyLines.add("addCriterion(field + \" not like \\\"\" + valueString + \"\\\"\");");
+        bodyLines.add("}");
+        bodyLines.add("if (\"GREATER\".equalsIgnoreCase(operator)) { ");
+        bodyLines.add("String valueString = (String) value;");
+        bodyLines.add("addCriterion(field + \" > \\\"\" + valueString + \"\\\"\");");
+        bodyLines.add("}");
+        bodyLines.add("if (\"LESS\".equalsIgnoreCase(operator)) { ");
+        bodyLines.add("String valueString = (String) value;");
+        bodyLines.add("addCriterion(field + \" < \\\"\" + valueString + \"\\\"\");");
+        bodyLines.add("}");
+        bodyLines.add("if (\"IN\".equalsIgnoreCase(operator)) { ");
+        bodyLines.add("List<String> values = (List<String>) value;");
+        bodyLines.add("String params = String.join(\"\\\",\\\"\", values);");
+        bodyLines.add("addCriterion(field + \" in (\\\"\" + params + \"\\\")\");");
+        bodyLines.add("}");
+        bodyLines.add("if (\"NOT_IN\".equalsIgnoreCase(operator)) { ");
+        bodyLines.add("List<String> values = (List<String>) value;");
+        bodyLines.add("String params = String.join(\"\\\",\\\"\", values);");
+        bodyLines.add("addCriterion(field + \" not in (\\\"\" + params + \"\\\")\");");
+        bodyLines.add("}");
+        bodyLines.add("if (\"BETWEEN\".equalsIgnoreCase(operator)) { ");
+        bodyLines.add("Map<String, String> valueMap = (Map<String, String>) value;");
+        bodyLines.add("String start = valueMap.get(\"start\");");
+        bodyLines.add("String end = valueMap.get(\"end\");");
+        bodyLines.add("addCriterion(field + \" between \\\"\" + start + \"\\\" and \\\"\" + end + \"\\\"\");");
+        bodyLines.add("}");
+        bodyLines.add("if (\"NOT_BETWEEN\".equalsIgnoreCase(operator)) { ");
+        bodyLines.add("Map<String, String> valueMap = (Map<String, String>) value;");
+        bodyLines.add("String start = valueMap.get(\"start\");");
+        bodyLines.add("String end = valueMap.get(\"end\");");
+        bodyLines.add("addCriterion(field + \" not between \\\"\" + start + \"\\\" and \\\"\" + end + \"\\\"\");");
+        bodyLines.add("}");
+        bodyLines.add("});");
+        bodyLines.add("return (Criteria) this;");
+
+        method.addBodyLines(bodyLines);
+
+        FormatTools.addMethodWithBestPosition(innerClass, method);
+    }
+
+}
