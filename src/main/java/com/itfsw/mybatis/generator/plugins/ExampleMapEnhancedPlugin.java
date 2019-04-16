@@ -37,7 +37,9 @@ public class ExampleMapEnhancedPlugin extends BasePlugin {
         FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod("like", "andMapLike", introspectedTable));
         FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod("not like", "andMapNotLike", introspectedTable));
         FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod(">", "andMapGreaterThan", introspectedTable));
+        FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod(">=", "andMapGreaterThanOrEqualTo", introspectedTable));
         FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod("<", "andMapLessThan", introspectedTable));
+        FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod("<=", "andMapLessThanOrEqualTo", introspectedTable));
     }
 
     private Method generateEqualAndLikeMethod(String keyword, String methodName, IntrospectedTable introspectedTable) {
@@ -57,7 +59,7 @@ public class ExampleMapEnhancedPlugin extends BasePlugin {
                     bodyLine.add("if (map.containsKey(\"" + javaProperty + "\")) {");
                     bodyLine.add("String " + javaProperty + " = map.get(\"" + javaProperty + "\");");
                     bodyLine.add("if (" + javaProperty + " != null && !" + javaProperty + ".isEmpty()) {");
-                    bodyLine.add("addCriterion(\"" + column.getActualColumnName() + " " + keyword + " \\\"\" + " + javaProperty + " + \"\\\"\");");
+                    bodyLine.add("addCriterion(\"" + column.getActualColumnName() + " " + keyword + "\", " + javaProperty + ", \"" + column.getActualColumnName() + "\");");
                     bodyLine.add("}");
                     bodyLine.add("}");
                 });
@@ -94,7 +96,7 @@ public class ExampleMapEnhancedPlugin extends BasePlugin {
                     bodyLine.add("String " + startEscapeJavaProperty + " = start.get(\"" + startJavaProperty + "\");");
                     bodyLine.add("String " + endEscapeJavaProperty + " = end.get(\"" + endJavaProperty + "\");");
                     bodyLine.add("if ((" + startEscapeJavaProperty + " != null && !" + startEscapeJavaProperty + ".isEmpty()) && (" + endEscapeJavaProperty + " != null && !" + endEscapeJavaProperty + ".isEmpty())) {");
-                    bodyLine.add("addCriterion(\"" + column.getActualColumnName() + " " + keyword + " \\\"\" + " + startEscapeJavaProperty + " + \"\\\" and \\\"\" + " + endEscapeJavaProperty + " + \"\\\"\");");
+                    bodyLine.add("addCriterion(\"" + column.getActualColumnName() + " " + keyword + "\", " + startEscapeJavaProperty + ", " + endEscapeJavaProperty + ", \"" + column.getActualColumnName() + "\");");
                     bodyLine.add("}");
                     bodyLine.add("}");
                 });

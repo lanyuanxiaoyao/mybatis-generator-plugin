@@ -37,7 +37,9 @@ public class ExampleModelEnhancedPlugin extends BasePlugin {
         FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod("like", "andModelLike", introspectedTable));
         FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod("not like", "andModelNotLike", introspectedTable));
         FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod(">", "andModelGreaterThan", introspectedTable));
+        FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod(">=", "andModelGreaterThanOrEqualTo", introspectedTable));
         FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod("<", "andModelLessThan", introspectedTable));
+        FormatTools.addMethodWithBestPosition(innerClass, generateEqualAndLikeMethod("<=", "andModelLessThanOrEqualTo", introspectedTable));
     }
 
     private Method generateEqualAndLikeMethod(String keyword, String methodName, IntrospectedTable introspectedTable) {
@@ -53,12 +55,8 @@ public class ExampleModelEnhancedPlugin extends BasePlugin {
         introspectedTable.getAllColumns()
                 .forEach(column -> {
                     String javaProperty = "record." + generateGetter(column.getJavaProperty());
-                    String escapeJavaProperty = javaProperty;
-                    if (!"String".equalsIgnoreCase(column.getFullyQualifiedJavaType().getShortName())) {
-                        escapeJavaProperty = "String.valueOf(" + javaProperty + ")";
-                    }
-                    bodyLine.add("if (" + javaProperty + " != null && !" + escapeJavaProperty + ".isEmpty()) {");
-                    bodyLine.add("addCriterion(\"" + column.getActualColumnName() + " " + keyword + " \\\"\" + " + javaProperty + " + \"\\\"\");");
+                    bodyLine.add("if (" + javaProperty + " != null) {");
+                    bodyLine.add("addCriterion(\"" + column.getActualColumnName() + " " + keyword + "\", " + javaProperty + ", \"" + column.getActualColumnName() + "\");");
                     bodyLine.add("}");
                 });
         bodyLine.add("return (Criteria) this;");
@@ -86,14 +84,8 @@ public class ExampleModelEnhancedPlugin extends BasePlugin {
                 .forEach(column -> {
                     String startJavaProperty = "start." + generateGetter(column.getJavaProperty());
                     String endJavaProperty = "end." + generateGetter(column.getJavaProperty());
-                    String startEscapeJavaProperty = startJavaProperty;
-                    String endEscapeJavaProperty = endJavaProperty;
-                    if (!"String".equalsIgnoreCase(column.getFullyQualifiedJavaType().getShortName())) {
-                        startEscapeJavaProperty = "String.valueOf(" + startJavaProperty + ")";
-                        endEscapeJavaProperty = "String.valueOf(" + endJavaProperty + ")";
-                    }
-                    bodyLine.add("if ((" + startJavaProperty + " != null && !" + startEscapeJavaProperty + ".isEmpty()) && (" + endJavaProperty + " != null && !" + endEscapeJavaProperty + ".isEmpty())) {");
-                    bodyLine.add("addCriterion(\"" + column.getActualColumnName() + " " + keyword + " \\\"\" + " + startJavaProperty + " + \"\\\" and \\\"\" + " + endJavaProperty + " + \"\\\"\");");
+                    bodyLine.add("if (" + startJavaProperty + " != null && " + endJavaProperty + " != null) {");
+                    bodyLine.add("addCriterion(\"" + column.getActualColumnName() + " " + keyword + "\", " + startJavaProperty + ", " + endJavaProperty + ", \"" + column.getActualColumnName() + "\");");
                     bodyLine.add("}");
                 });
         bodyLine.add("return (Criteria) this;");
