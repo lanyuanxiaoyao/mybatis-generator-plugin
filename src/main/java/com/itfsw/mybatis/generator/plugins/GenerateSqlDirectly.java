@@ -3,6 +3,7 @@ package com.itfsw.mybatis.generator.plugins;
 import com.itfsw.mybatis.generator.plugins.utils.BasePlugin;
 import com.itfsw.mybatis.generator.plugins.utils.FormatTools;
 import com.itfsw.mybatis.generator.plugins.utils.JavaElementGeneratorTools;
+import com.itfsw.mybatis.generator.plugins.utils.PluginTools;
 import org.mybatis.generator.api.IntrospectedColumn;
 import org.mybatis.generator.api.IntrospectedTable;
 import org.mybatis.generator.api.dom.java.*;
@@ -22,6 +23,15 @@ public class GenerateSqlDirectly extends BasePlugin {
     private static final Logger logger = LoggerFactory.getLogger(GenerateSqlDirectly.class);
 
     @Override
+    public boolean validate(List<String> warnings) {
+        if (!PluginTools.checkDependencyPlugin(getContext(), ExampleColumnPlugin.class)) {
+            warnings.add("itfsw:插件" + this.getClass().getTypeName() + "插件需配合com.itfsw.mybatis.generator.plugins.ExampleColumnPlugin插件使用！");
+            return false;
+        }
+        return super.validate(warnings);
+    }
+
+    @Override
     public boolean modelExampleClassGenerated(TopLevelClass topLevelClass, IntrospectedTable introspectedTable) {
         topLevelClass.getInnerClasses()
                 .stream()
@@ -36,76 +46,59 @@ public class GenerateSqlDirectly extends BasePlugin {
     private void generate(TopLevelClass topLevelClass, InnerClass innerClass, IntrospectedTable introspectedTable) {
         topLevelClass.addImportedType("java.util.List");
         topLevelClass.addImportedType("java.util.Map");
-        topLevelClass.addImportedType("java.util.stream.Stream");
         Method method = JavaElementGeneratorTools.generateMethod(
                 "andFilter",
                 JavaVisibility.PUBLIC,
                 FullyQualifiedJavaType.getCriteriaInstance(),
-                new Parameter(new FullyQualifiedJavaType("java.util.List<java.util.Map<String, Object>>"), "filters")
+                new Parameter(new FullyQualifiedJavaType("List<Map<String, Object>>"), "filters")
         );
         commentGenerator.addGeneralMethodComment(method, introspectedTable);
 
         List<String> bodyLines = new ArrayList<>();
-        String columnNames = introspectedTable.getAllColumns()
-                .stream()
-                .map(IntrospectedColumn::getActualColumnName)
-                .collect(Collectors.joining("\",\""));
-        columnNames = "\"" + columnNames + "\"";
-        bodyLines.add("String[] columnNames = new String[]{" + columnNames + "};");
-        bodyLines.add("filters.forEach(filter -> {");
+        bodyLines.add("for (Map<String, Object> filter : filters) {");
         bodyLines.add("Object value = filter.get(\"value\");");
         bodyLines.add("String field = (String) filter.get(\"field\");");
-        bodyLines.add("if (Stream.of(columnNames).allMatch(s -> s.equalsIgnoreCase(field))) {");
-        bodyLines.add("return;");
+        bodyLines.add("if (existsColumn(field)) {");
+        bodyLines.add("continue;");
         bodyLines.add("}");
         bodyLines.add("String operator = (String) filter.get(\"operator\");");
         bodyLines.add("if (\"EQUALS\".equalsIgnoreCase(operator)) { ");
-        bodyLines.add("String valueString = (String) value;");
-        bodyLines.add("addCriterion(field + \" = \\\"\" + valueString + \"\\\"\");");
+        bodyLines.add("addCriterion(field + \" =\", value, field);");
         bodyLines.add("}");
         bodyLines.add("if (\"NOT_EQUALS\".equalsIgnoreCase(operator)) { ");
-        bodyLines.add("String valueString = (String) value;");
-        bodyLines.add("addCriterion(field + \" <> \\\"\" + valueString + \"\\\"\");");
+        bodyLines.add("addCriterion(field + \" <>\", value, field);");
         bodyLines.add("}");
         bodyLines.add("if (\"LIKE\".equalsIgnoreCase(operator)) { ");
-        bodyLines.add("String valueString = (String) value;");
-        bodyLines.add("addCriterion(field + \" like \\\"\" + valueString + \"\\\"\");");
+        bodyLines.add("addCriterion(field + \" like\", value, field);");
         bodyLines.add("}");
         bodyLines.add("if (\"NOT_LIKE\".equalsIgnoreCase(operator)) { ");
-        bodyLines.add("String valueString = (String) value;");
-        bodyLines.add("addCriterion(field + \" not like \\\"\" + valueString + \"\\\"\");");
+        bodyLines.add("addCriterion(field + \" not like\", value, field);");
         bodyLines.add("}");
         bodyLines.add("if (\"GREATER\".equalsIgnoreCase(operator)) { ");
-        bodyLines.add("String valueString = (String) value;");
-        bodyLines.add("addCriterion(field + \" > \\\"\" + valueString + \"\\\"\");");
+        bodyLines.add("addCriterion(field + \" >\", value, field);");
         bodyLines.add("}");
         bodyLines.add("if (\"LESS\".equalsIgnoreCase(operator)) { ");
-        bodyLines.add("String valueString = (String) value;");
-        bodyLines.add("addCriterion(field + \" < \\\"\" + valueString + \"\\\"\");");
+        bodyLines.add("addCriterion(field + \" <\", value, field);");
         bodyLines.add("}");
         bodyLines.add("if (\"IN\".equalsIgnoreCase(operator)) { ");
-        bodyLines.add("List<String> values = (List<String>) value;");
-        bodyLines.add("String params = String.join(\"\\\",\\\"\", values);");
-        bodyLines.add("addCriterion(field + \" in (\\\"\" + params + \"\\\")\");");
+        bodyLines.add("addCriterion(field + \" in\", value, field);");
         bodyLines.add("}");
         bodyLines.add("if (\"NOT_IN\".equalsIgnoreCase(operator)) { ");
-        bodyLines.add("List<String> values = (List<String>) value;");
-        bodyLines.add("String params = String.join(\"\\\",\\\"\", values);");
-        bodyLines.add("addCriterion(field + \" not in (\\\"\" + params + \"\\\")\");");
+        bodyLines.add("addCriterion(field + \" not in\", value, field);");
         bodyLines.add("}");
         bodyLines.add("if (\"BETWEEN\".equalsIgnoreCase(operator)) { ");
         bodyLines.add("Map<String, String> valueMap = (Map<String, String>) value;");
         bodyLines.add("String start = valueMap.get(\"start\");");
         bodyLines.add("String end = valueMap.get(\"end\");");
-        bodyLines.add("addCriterion(field + \" between \\\"\" + start + \"\\\" and \\\"\" + end + \"\\\"\");");
+        bodyLines.add("addCriterion(field + \" between\", start, end, field);");
         bodyLines.add("}");
         bodyLines.add("if (\"NOT_BETWEEN\".equalsIgnoreCase(operator)) { ");
         bodyLines.add("Map<String, String> valueMap = (Map<String, String>) value;");
         bodyLines.add("String start = valueMap.get(\"start\");");
         bodyLines.add("String end = valueMap.get(\"end\");");
-        bodyLines.add("addCriterion(field + \" not between \\\"\" + start + \"\\\" and \\\"\" + end + \"\\\"\");");
+        bodyLines.add("addCriterion(field + \" not between\", start, end, field);");
         bodyLines.add("}");
-        bodyLines.add("});");
+        bodyLines.add("}");
         bodyLines.add("return (Criteria) this;");
 
         method.addBodyLines(bodyLines);
