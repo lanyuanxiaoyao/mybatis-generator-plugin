@@ -61,7 +61,8 @@ public class ExampleFieldEnhancePlugin extends BasePlugin {
         commentGenerator.addGeneralMethodComment(method, introspectedTable);
 
         List<String> bodyLines = new ArrayList<>();
-        bodyLines.add("if(existsColumn(field)) {");
+        bodyLines.add("field = getActualColumnName(field);");
+        bodyLines.add("if(!field.isEmpty()) {");
         bodyLines.add("addCriterion(field + \" " + operator + " \" + value);");
         bodyLines.add("}");
         bodyLines.add("return (Criteria) this;");
@@ -83,7 +84,8 @@ public class ExampleFieldEnhancePlugin extends BasePlugin {
         commentGenerator.addGeneralMethodComment(method, introspectedTable);
 
         List<String> bodyLines = new ArrayList<>();
-        bodyLines.add("if(existsColumn(field)) {");
+        bodyLines.add("field = getActualColumnName(field);");
+        bodyLines.add("if(!field.isEmpty()) {");
         bodyLines.add("addCriterion(field + \" " + operator + "\", start, end, field);");
         bodyLines.add("}");
         bodyLines.add("return (Criteria) this;");
@@ -104,7 +106,8 @@ public class ExampleFieldEnhancePlugin extends BasePlugin {
         commentGenerator.addGeneralMethodComment(method, introspectedTable);
 
         List<String> bodyLines = new ArrayList<>();
-        bodyLines.add("if(existsColumn(field)) {");
+        bodyLines.add("field = getActualColumnName(field);");
+        bodyLines.add("if(!field.isEmpty()) {");
         bodyLines.add("addCriterion(field + \" " + operator + "\", values, field);");
         bodyLines.add("}");
         bodyLines.add("return (Criteria) this;");
