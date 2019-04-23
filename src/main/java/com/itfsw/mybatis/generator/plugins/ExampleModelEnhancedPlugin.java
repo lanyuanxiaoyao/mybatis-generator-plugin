@@ -51,16 +51,18 @@ public class ExampleModelEnhancedPlugin extends BasePlugin {
         );
         commentGenerator.addGeneralMethodComment(method, introspectedTable);
 
-        List<String> bodyLine = new ArrayList<>();
+        List<String> bodyLines = new ArrayList<>();
+        bodyLines.add("if (record != null) {");
         introspectedTable.getAllColumns()
                 .forEach(column -> {
                     String javaProperty = "record." + generateGetter(column.getJavaProperty());
-                    bodyLine.add("if (" + javaProperty + " != null) {");
-                    bodyLine.add("addCriterion(\"" + column.getActualColumnName() + " " + keyword + "\", " + javaProperty + ", \"" + column.getActualColumnName() + "\");");
-                    bodyLine.add("}");
+                    bodyLines.add("if (" + javaProperty + " != null) {");
+                    bodyLines.add("addCriterion(\"" + column.getActualColumnName() + " " + keyword + "\", " + javaProperty + ", \"" + column.getActualColumnName() + "\");");
+                    bodyLines.add("}");
                 });
-        bodyLine.add("return (Criteria) this;");
-        method.addBodyLines(bodyLine);
+        bodyLines.add("}");
+        bodyLines.add("return (Criteria) this;");
+        method.addBodyLines(bodyLines);
         return method;
     }
 
@@ -79,17 +81,19 @@ public class ExampleModelEnhancedPlugin extends BasePlugin {
         );
         commentGenerator.addGeneralMethodComment(method, introspectedTable);
 
-        List<String> bodyLine = new ArrayList<>();
+        List<String> bodyLines = new ArrayList<>();
+        bodyLines.add("if (start != null && end != null) {");
         introspectedTable.getAllColumns()
                 .forEach(column -> {
                     String startJavaProperty = "start." + generateGetter(column.getJavaProperty());
                     String endJavaProperty = "end." + generateGetter(column.getJavaProperty());
-                    bodyLine.add("if (" + startJavaProperty + " != null && " + endJavaProperty + " != null) {");
-                    bodyLine.add("addCriterion(\"" + column.getActualColumnName() + " " + keyword + "\", " + startJavaProperty + ", " + endJavaProperty + ", \"" + column.getActualColumnName() + "\");");
-                    bodyLine.add("}");
+                    bodyLines.add("if (" + startJavaProperty + " != null && " + endJavaProperty + " != null) {");
+                    bodyLines.add("addCriterion(\"" + column.getActualColumnName() + " " + keyword + "\", " + startJavaProperty + ", " + endJavaProperty + ", \"" + column.getActualColumnName() + "\");");
+                    bodyLines.add("}");
                 });
-        bodyLine.add("return (Criteria) this;");
-        method.addBodyLines(bodyLine);
+        bodyLines.add("}");
+        bodyLines.add("return (Criteria) this;");
+        method.addBodyLines(bodyLines);
         return method;
     }
 

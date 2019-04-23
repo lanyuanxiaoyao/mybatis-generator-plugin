@@ -4,7 +4,6 @@ import com.itfsw.mybatis.generator.plugins.utils.BasePlugin;
 import com.itfsw.mybatis.generator.plugins.utils.FormatTools;
 import com.itfsw.mybatis.generator.plugins.utils.JavaElementGeneratorTools;
 import com.itfsw.mybatis.generator.plugins.utils.PluginTools;
-import org.mybatis.generator.api.IntrospectedColumn;
 import org.mybatis.generator.api.IntrospectedTable;
 import org.mybatis.generator.api.dom.java.*;
 import org.slf4j.Logger;
@@ -12,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author ZhangJiacheng
@@ -58,7 +56,8 @@ public class GenerateSqlDirectly extends BasePlugin {
         bodyLines.add("for (Map<String, Object> filter : filters) {");
         bodyLines.add("Object value = filter.get(\"value\");");
         bodyLines.add("String field = (String) filter.get(\"field\");");
-        bodyLines.add("if (existsColumn(field)) {");
+        bodyLines.add("field = getActualColumnName(field);");
+        bodyLines.add("if(field.isEmpty()) {");
         bodyLines.add("continue;");
         bodyLines.add("}");
         bodyLines.add("String operator = (String) filter.get(\"operator\");");

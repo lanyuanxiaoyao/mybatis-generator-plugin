@@ -3,7 +3,6 @@ package com.itfsw.mybatis.generator.plugins;
 import com.itfsw.mybatis.generator.plugins.utils.BasePlugin;
 import com.itfsw.mybatis.generator.plugins.utils.FormatTools;
 import com.itfsw.mybatis.generator.plugins.utils.JavaElementGeneratorTools;
-import org.mybatis.generator.api.IntrospectedColumn;
 import org.mybatis.generator.api.IntrospectedTable;
 import org.mybatis.generator.api.dom.java.*;
 import org.slf4j.Logger;
@@ -26,16 +25,16 @@ public class ExampleColumnPlugin extends BasePlugin {
     @Override
     public boolean modelExampleClassGenerated(TopLevelClass topLevelClass, IntrospectedTable introspectedTable) {
         topLevelClass.addImportedType("java.util.List");
+        topLevelClass.addImportedType("java.util.Arrays");
         StringJoiner joiner = new StringJoiner(",");
         introspectedTable.getAllColumns()
                 .stream()
-                .map(IntrospectedColumn::getActualColumnName)
-                .map(s -> "\"" + s + "\"")
+                .map(introspectedColumn -> "{\"" + introspectedColumn.getActualColumnName() + "\", \"" + introspectedColumn.getJavaProperty() + "\"}")
                 .forEach(joiner::add);
         Field columnFieldList = JavaElementGeneratorTools.generateStaticFinalField(
                 "FIELD_NAME_LIST",
-                new FullyQualifiedJavaType("String[]"),
-                "new String[]{" + joiner.toString() + "}"
+                new FullyQualifiedJavaType("String[][]"),
+                "new String[][]{" + joiner.toString() + "}"
         );
         columnFieldList.setStatic(true);
         commentGenerator.addFieldComment(columnFieldList, introspectedTable);
@@ -49,15 +48,20 @@ public class ExampleColumnPlugin extends BasePlugin {
         );
         columnExistsMethod.setStatic(true);
         commentGenerator.addGeneralMethodComment(columnExistsMethod, introspectedTable);
-        List<String> bodyLines = new ArrayList<>();
-        bodyLines.add("for (String f : FIELD_NAME_LIST) {");
-        bodyLines.add("if (f.equalsIgnoreCase(field)) {");
-        bodyLines.add("return true;");
-        bodyLines.add("}");
-        bodyLines.add("}");
-        bodyLines.add("return false;");
-        columnExistsMethod.addBodyLines(bodyLines);
+        columnExistsMethod.addBodyLine("return Arrays.stream(FIELD_NAME_LIST).anyMatch(strings -> strings[0].equalsIgnoreCase(field) || strings[0].equalsIgnoreCase(field));");
         FormatTools.addMethodWithBestPosition(topLevelClass, columnExistsMethod);
+
+        Method getActualColumnName = JavaElementGeneratorTools.generateMethod(
+                "getActualColumnName",
+                JavaVisibility.PRIVATE,
+                FullyQualifiedJavaType.getStringInstance(),
+                new Parameter(FullyQualifiedJavaType.getStringInstance(), "field")
+        );
+        getActualColumnName.setStatic(true);
+        commentGenerator.addGeneralMethodComment(getActualColumnName, introspectedTable);
+        getActualColumnName.addBodyLine("return Arrays.stream(FIELD_NAME_LIST).filter(strings -> strings[0].equalsIgnoreCase(field) || strings[1].equalsIgnoreCase(field)).findFirst().map(strings -> strings[0]).orElse(\"\");");
+        FormatTools.addMethodWithBestPosition(topLevelClass, getActualColumnName);
+
         return true;
     }
 }

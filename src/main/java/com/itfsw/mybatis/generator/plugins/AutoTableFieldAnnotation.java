@@ -46,7 +46,7 @@ public class AutoTableFieldAnnotation extends BasePlugin {
                         } catch (Exception ignored) {
                         }
                     })
-                    .peek(field -> {
+                    .forEach(field -> {
                         try {
                             IntrospectedColumn column = columnMap.get(field.getName());
                             String type = column.getFullyQualifiedJavaType().getShortName().toLowerCase();
@@ -59,38 +59,6 @@ public class AutoTableFieldAnnotation extends BasePlugin {
                                 field.addAnnotation("@Max(" + column.getLength() + ")");
                             }
                         } catch (Exception ignored) {
-                        }
-                    })
-                    .forEach(field -> {
-                        try {
-                            IntrospectedColumn column = columnMap.get(field.getName());
-                            String defaultValue = column.getDefaultValue();
-                            if (StringUtility.stringHasValue(defaultValue)) {
-                                switch (column.getFullyQualifiedJavaType().getShortName().toLowerCase()) {
-                                    case LONG:
-                                        field.setInitializationString(defaultValue + "L");
-                                        break;
-                                    case FLOAT:
-                                        field.setInitializationString(defaultValue + "F");
-                                        break;
-                                    case DOUBLE:
-                                        field.setInitializationString(defaultValue + "D");
-                                        break;
-                                    case STRING:
-                                        if (Pattern.matches("'.*'", defaultValue)) {
-                                            defaultValue = defaultValue.replaceAll("'", "\"");
-                                        }
-                                        if (!Pattern.matches("\".*\"", defaultValue)) {
-                                            defaultValue = "\"" + defaultValue + "\"";
-                                        }
-                                        field.setInitializationString(defaultValue);
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            }
-                        } catch (Exception ignore) {
-
                         }
                     });
         } catch (Exception e) {
