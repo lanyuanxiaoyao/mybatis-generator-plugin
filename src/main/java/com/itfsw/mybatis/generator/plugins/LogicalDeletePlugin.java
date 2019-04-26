@@ -37,6 +37,7 @@ import static org.mybatis.generator.internal.util.StringUtility.stringHasValue;
  * ---------------------------------------------------------------------------
  * 逻辑删除插件
  * ---------------------------------------------------------------------------
+ *
  * @author: hewei
  * @time:2017/1/13 14:08
  * ---------------------------------------------------------------------------
@@ -231,6 +232,7 @@ public class LogicalDeletePlugin extends BasePlugin {
     /**
      * Java Client Methods 生成
      * 具体执行顺序 http://www.mybatis.org/generator/reference/pluggingIn.html
+     *
      * @param interfaze
      * @param topLevelClass
      * @param introspectedTable
@@ -439,7 +441,11 @@ public class LogicalDeletePlugin extends BasePlugin {
                 sb.append(introspectedTable.getAliasedFullyQualifiedTableNameAtRuntime());
                 selectByPrimaryKey.addElement(new TextElement(sb.toString()));
 
-                XmlElementGeneratorTools.generateWhereByPrimaryKeyTo(selectByPrimaryKey, introspectedTable.getPrimaryKeyColumns());
+                if (introspectedTable.getRules().generatePrimaryKeyClass()) {
+                    XmlElementGeneratorTools.generateWhereByPrimaryKeyTo(selectByPrimaryKey, introspectedTable.getPrimaryKeyColumns(), "key.");
+                } else {
+                    XmlElementGeneratorTools.generateWhereByPrimaryKeyTo(selectByPrimaryKey, introspectedTable.getPrimaryKeyColumns());
+                }
 
                 // 逻辑删除的判断
                 sb.setLength(0);
