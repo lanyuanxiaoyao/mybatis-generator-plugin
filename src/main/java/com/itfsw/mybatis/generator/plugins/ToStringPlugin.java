@@ -59,11 +59,20 @@ public class ToStringPlugin extends BasePlugin {
     public List<String> generateStringJoiner(IntrospectedTable introspectedTable) {
         List<String> bodyLines = new ArrayList<>();
         bodyLines.add("return new StringJoiner(\", \", \"" + new FullyQualifiedJavaType(introspectedTable.getBaseRecordType()).getShortName() + " [\", \"]\")");
-        introspectedTable.getAllColumns().forEach(column -> {
-            bodyLines.add(".add(\"" + column.getJavaProperty() + "=\" + " + column.getJavaProperty() + ")");
-        });
+        introspectedTable.getPrimaryKeyColumns()
+                .forEach(column -> bodyLines.add(".add(\"" + column.getJavaProperty() + "=\" + " + generateGetter(column.getJavaProperty()) + ")"));
+        introspectedTable.getNonPrimaryKeyColumns()
+                .forEach(column -> bodyLines.add(".add(\"" + column.getJavaProperty() + "=\" + " + column.getJavaProperty() + ")"));
         bodyLines.add(".toString();");
         return bodyLines;
+    }
+
+    private String generateGetter(String propertyName) {
+        return String.format(
+                "get%s%s()",
+                propertyName.substring(0, 1).toUpperCase(),
+                propertyName.substring(1)
+        );
     }
 
 }
