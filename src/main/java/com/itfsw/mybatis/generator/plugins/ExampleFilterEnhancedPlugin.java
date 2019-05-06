@@ -16,13 +16,13 @@ import java.util.List;
  * @author ZhangJiacheng
  * @date 2019-04-14
  */
-public class GenerateSqlDirectly extends BasePlugin {
+public class ExampleFilterEnhancedPlugin extends BasePlugin {
 
-    private static final Logger logger = LoggerFactory.getLogger(GenerateSqlDirectly.class);
+    private static final Logger logger = LoggerFactory.getLogger(ExampleFilterEnhancedPlugin.class);
 
     @Override
     public boolean validate(List<String> warnings) {
-        if (!PluginTools.checkDependencyPlugin(getContext(), ExampleColumnPlugin.class)) {
+        if (!PluginTools.checkDependencyPlugin(getContext(), ExampleColumnHelperPlugin.class)) {
             warnings.add("itfsw:插件" + this.getClass().getTypeName() + "插件需配合com.itfsw.mybatis.generator.plugins.ExampleColumnPlugin插件使用！");
             return false;
         }

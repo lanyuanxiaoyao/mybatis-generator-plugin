@@ -8,19 +8,17 @@ import org.mybatis.generator.api.dom.java.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.StringJoiner;
 
 /**
  * 列辅助插件
  *
- * @author ZhangJiacheng
+ * @author LanyuanXiaoyao
  * @date 2019-04-15
  */
-public class ExampleColumnPlugin extends BasePlugin {
+public class ExampleColumnHelperPlugin extends BasePlugin {
 
-    private static final Logger logger = LoggerFactory.getLogger(ExampleColumnPlugin.class);
+    private static final Logger logger = LoggerFactory.getLogger(ExampleColumnHelperPlugin.class);
 
     @Override
     public boolean modelExampleClassGenerated(TopLevelClass topLevelClass, IntrospectedTable introspectedTable) {
