@@ -12,13 +12,19 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 增加任意字段查找的功能
+ *
+ * @author LanyuanXiaoyao
+ * @date 2019-05-06
+ */
 public class ExampleFieldEnhancePlugin extends BasePlugin {
 
     private static final Logger logger = LoggerFactory.getLogger(ExampleFieldEnhancePlugin.class);
 
     @Override
     public boolean validate(List<String> warnings) {
-        if (!PluginTools.checkDependencyPlugin(getContext(), ExampleColumnPlugin.class)) {
+        if (!PluginTools.checkDependencyPlugin(getContext(), ExampleColumnHelperPlugin.class)) {
             warnings.add("itfsw:插件" + this.getClass().getTypeName() + "插件需配合com.itfsw.mybatis.generator.plugins.ExampleColumnPlugin插件使用！");
             return false;
         }

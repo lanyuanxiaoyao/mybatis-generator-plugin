@@ -12,10 +12,17 @@ import org.mybatis.generator.api.dom.java.TopLevelClass;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * toString方法生成插件
+ *
+ * @author LanyuanXiaoyao
+ * @date 2019-05-06
+ */
 public class ToStringPlugin extends BasePlugin {
 
     private static final String PROPERTY_NAME = "type";
     private static final String STRING_JOINER = "StringJoiner";
+    private static final String STRING_PLUS = "StringPlus";
 
     private String type = STRING_JOINER;
 
@@ -56,7 +63,7 @@ public class ToStringPlugin extends BasePlugin {
         return true;
     }
 
-    public List<String> generateStringJoiner(IntrospectedTable introspectedTable) {
+    private List<String> generateStringJoiner(IntrospectedTable introspectedTable) {
         List<String> bodyLines = new ArrayList<>();
         bodyLines.add("return new StringJoiner(\", \", \"" + new FullyQualifiedJavaType(introspectedTable.getBaseRecordType()).getShortName() + " [\", \"]\")");
         introspectedTable.getPrimaryKeyColumns()
