@@ -21,16 +21,14 @@ public class AutoTableFieldCommentPlugin extends BasePlugin {
 		try {
 			Map<String, IntrospectedColumn> columnMap = new HashMap<>();
 			introspectedTable.getAllColumns().forEach(column -> columnMap.put(column.getJavaProperty(), column));
-			topLevelClass.getFields().stream().forEach(field -> {
+			topLevelClass.getFields().forEach(field -> {
 				try {
 					IntrospectedColumn column = columnMap.get(field.getName());
 
-					StringBuilder sb = new StringBuilder();
-					sb.append(" * ");
-					sb.append(column.getRemarks());
-
 					field.addJavaDocLine("/**");
-					field.addJavaDocLine(sb.toString().replace("\n", " "));
+					String sb = " * " +
+							column.getRemarks();
+					field.addJavaDocLine(sb.replace("\n", " "));
 					field.addJavaDocLine(" */");
 
 				} catch (Exception ignored) {

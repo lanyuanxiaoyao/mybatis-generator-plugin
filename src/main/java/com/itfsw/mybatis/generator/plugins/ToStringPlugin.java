@@ -3,6 +3,7 @@ package com.itfsw.mybatis.generator.plugins;
 import com.itfsw.mybatis.generator.plugins.utils.BasePlugin;
 import com.itfsw.mybatis.generator.plugins.utils.FormatTools;
 import com.itfsw.mybatis.generator.plugins.utils.JavaElementGeneratorTools;
+import org.mybatis.generator.api.IntrospectedColumn;
 import org.mybatis.generator.api.IntrospectedTable;
 import org.mybatis.generator.api.dom.java.FullyQualifiedJavaType;
 import org.mybatis.generator.api.dom.java.JavaVisibility;
@@ -52,6 +53,9 @@ public class ToStringPlugin extends BasePlugin {
             case STRING_JOINER:
                 methodBody = generateStringJoiner(introspectedTable);
                 break;
+            case STRING_PLUS:
+                methodBody = generateStringPlus(introspectedTable);
+                break;
             default:
                 methodBody.add("return super.toString();");
         }
@@ -71,6 +75,32 @@ public class ToStringPlugin extends BasePlugin {
         introspectedTable.getNonPrimaryKeyColumns()
                 .forEach(column -> bodyLines.add(".add(\"" + column.getJavaProperty() + "=\" + " + column.getJavaProperty() + ")"));
         bodyLines.add(".toString();");
+        return bodyLines;
+    }
+
+    private List<String> generateStringPlus(IntrospectedTable introspectedTable) {
+        List<String> bodyLines = new ArrayList<>();
+        bodyLines.add("return \"" + new FullyQualifiedJavaType(introspectedTable.getBaseRecordType()).getShortName() + "{\" +");
+        boolean isFirstLine = true;
+        for (int i = 0; i < introspectedTable.getPrimaryKeyColumns().size(); i++) {
+            IntrospectedColumn column = introspectedTable.getPrimaryKeyColumns().get(i);
+            if (isFirstLine) {
+                bodyLines.add("\"" + column.getJavaProperty() + "='\" + " + generateGetter(column.getJavaProperty()) + " + '\\'' +");
+                isFirstLine = false;
+            } else {
+                bodyLines.add("\", " + column.getJavaProperty() + "='\" + " + generateGetter(column.getJavaProperty()) + " + '\\'' +");
+            }
+        }
+        for (int i = 0; i < introspectedTable.getNonPrimaryKeyColumns().size(); i++) {
+            IntrospectedColumn column = introspectedTable.getPrimaryKeyColumns().get(i);
+            if (isFirstLine) {
+                bodyLines.add("\"" + column.getJavaProperty() + "='\" + " + column.getJavaProperty() + " + '\\'' +");
+                isFirstLine = false;
+            } else {
+                bodyLines.add("\", " + column.getJavaProperty() + "='\" + " + column.getJavaProperty() + " + '\\'' +");
+            }
+        }
+        bodyLines.add("'}';");
         return bodyLines;
     }
 
