@@ -48,7 +48,7 @@ public class ExampleMapEnhancedPlugin extends BasePlugin {
                 methodName,
                 JavaVisibility.PUBLIC,
                 FullyQualifiedJavaType.getCriteriaInstance(),
-                new Parameter(new FullyQualifiedJavaType("java.util.Map<String, String>"), "map")
+                new Parameter(new FullyQualifiedJavaType("java.util.Map<String, Object>"), "map")
         );
         commentGenerator.addGeneralMethodComment(method, introspectedTable);
 
@@ -58,8 +58,8 @@ public class ExampleMapEnhancedPlugin extends BasePlugin {
                 .forEach(column -> {
                     String javaProperty = column.getJavaProperty();
                     bodyLine.add("if (map.containsKey(\"" + javaProperty + "\")) {");
-                    bodyLine.add("String " + javaProperty + " = map.get(\"" + javaProperty + "\");");
-                    bodyLine.add("if (" + javaProperty + " != null && !" + javaProperty + ".isEmpty()) {");
+                    bodyLine.add("Object " + javaProperty + " = map.get(\"" + javaProperty + "\");");
+                    bodyLine.add("if (" + javaProperty + " != null) {");
                     bodyLine.add("addCriterion(\"" + column.getActualColumnName() + " " + keyword + "\", " + javaProperty + ", \"" + column.getActualColumnName() + "\");");
                     bodyLine.add("}");
                     bodyLine.add("}");
