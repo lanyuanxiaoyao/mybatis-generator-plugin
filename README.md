@@ -1,11 +1,11 @@
-# 这是 MyBatis Generator 插件的拓展插件包
-应该说使用Mybatis就一定离不开[MyBatis Generator](https://github.com/mybatis/generator)这款代码生成插件，而这款插件自身还提供了插件拓展功能用于强化插件本身，官方已经提供了一些[拓展插件](http://www.mybatis.org/generator/reference/plugins.html)，本项目的目的也是通过该插件机制来强化Mybatis Generator本身，方便和减少我们平时的代码开发量。
->因为插件是本人兴之所至所临时发布的项目（本人已近三年未做JAVA开发，代码水平请大家见谅），但基本插件都是在实际项目中经过检验的请大家放心使用，但因为项目目前主要数据库为MySQL，Mybatis实现使用Mapper.xml方式，所以代码生成时对于其他数据库和注解方式的支持未予考虑，请大家见谅。
-
->V1.3.x版本的测试基准基于mybatis-3.5.0，同时向下兼容V3.4.0(某些插件需要context节点配置mybatis版本信息[[issues#70](https://github.com/itfsw/mybatis-generator-plugin/issues/70)])。老版本参见分支[V1.2.x](https://github.com/itfsw/mybatis-generator-plugin/tree/V1.2)；
+# 这是 MyBatis Generator 插件的拓展插件包  
+应该说使用Mybatis就一定离不开[MyBatis Generator](https://github.com/mybatis/generator)这款代码生成插件，而这款插件自身还提供了插件拓展功能用于强化插件本身，官方已经提供了一些[拓展插件](http://www.mybatis.org/generator/reference/plugins.html)，本项目的目的也是通过该插件机制来强化Mybatis Generator本身，方便和减少我们平时的代码开发量。  
+>因为插件是本人兴之所至所临时发布的项目（本人已近三年未做JAVA开发，代码水平请大家见谅），但基本插件都是在实际项目中经过检验的请大家放心使用，但因为项目目前主要数据库为MySQL，Mybatis实现使用Mapper.xml方式，所以代码生成时对于其他数据库和注解方式的支持未予考虑，请大家见谅。    
+  
+>V1.3.x版本的测试基准基于mybatis-3.5.0，同时向下兼容V3.4.0(某些插件需要context节点配置mybatis版本信息[[issues#70](https://github.com/itfsw/mybatis-generator-plugin/issues/70)])。老版本参见分支[V1.2.x](https://github.com/itfsw/mybatis-generator-plugin/tree/V1.2)；  
 ```xml
 <context>
-    <!--
+    <!-- 
         解决 批量插入插件（BatchInsertPlugin）在mybatis3.5.0以下版本无法返回自增主键的问题
         指定mybatis版本，让插件指定您所使用的mybatis版本生成对应代码
      -->
@@ -14,7 +14,7 @@
 ```
 
 ---------------------------------------
-插件列表：
+插件列表：  
 * [查询单条数据插件（SelectOneByExamplePlugin）](#1-查询单条数据插件)
 * [MySQL分页插件（LimitPlugin）](#2-mysql分页插件)
 * [数据Model链式构建插件（ModelBuilderPlugin）](#3-数据model链式构建插件)
@@ -40,12 +40,12 @@
 * [Mapper注解插件（MapperAnnotationPlugin）](#23-Mapper注解插件)
 
 ---------------------------------------
-Maven引用：
+Maven引用：  
 ```xml
 <dependency>
   <groupId>com.itfsw</groupId>
   <artifactId>mybatis-generator-plugin</artifactId>
-  <version>1.3.8</version>
+  <version>1.3.10</version>
 </dependency>
 ```
 ---------------------------------------
@@ -100,7 +100,7 @@ targetCompatibility = 1.8
 
 
 def mybatisGeneratorCore = 'org.mybatis.generator:mybatis-generator-core:1.3.7'
-def itfswMybatisGeneratorPlugin = 'com.itfsw:mybatis-generator-plugin:1.3.2'
+def itfswMybatisGeneratorPlugin = 'com.itfsw:mybatis-generator-plugin:1.3.8'
 
 mybatisGenerator {
   verbose = false
@@ -674,6 +674,9 @@ public class Test {
         
         // 4. excludes 方法
         this.tbMapper.batchInsertSelective(list, Tb.Column.excludes(Tb.Column.id, Tb.Column.delFlag));
+        
+        // 5. all 方法
+        this.tbMapper.batchInsertSelective(list, Tb.Column.all());
     }
 }
 ```
@@ -1253,6 +1256,8 @@ Mybatis Generator是原生支持自定义注释的（commentGenerator配置type�
 ### 14. 增量插件
 为更新操作生成set filedxxx = filedxxx +/- inc 操作，方便某些统计字段的更新操作，常用于某些需要计数的场景；  
 
+>warning：该插件在整合LombokPlugin使用时会生成大量附加代码影响代码美观，强力建议切换到新版插件[IncrementPlugin](#22-增量插件);    
+
 插件：
 ```xml
 <xml>
@@ -1393,8 +1398,8 @@ public class Test {
                 Tb.builder()
                   .id(102)
                   .field1("ts1")
-                  .nextVersion(System.currentTimeMillis())    // 传入nextVersion
                   .build()
+                  .nextVersion(System.currentTimeMillis())    // 传入nextVersion
         );
         // 对应生成的Sql: update tb set version = 1525773888559, field1 = 'ts1' where version = 100 and id = 102
     }
@@ -1402,7 +1407,7 @@ public class Test {
 ```
 ### 18. 表重命名配置插件
 官方提供了domainObjectRenamingRule(官方最新版本已提供)、columnRenamingRule分别进行生成的表名称和对应表字段的重命名支持，但是它需要每个表单独进行配置，对于常用的如表附带前缀“t_”、字段前缀“f_”这种全局性替换会比较麻烦。   
-该插件提供了一种全局替换机制，当表没有单独指定domainObjectRenamingRule、columnRenamingRule时采用全局性配置。同时该插件会修复官方domainObjectRenamingRule的bug(没有进行正确的首字母大写)。   
+该插件提供了一种全局替换机制，当表没有单独指定domainObjectRenamingRule、columnRenamingRule时采用全局性配置。   
 同时插件提供clientSuffix、exampleSuffix、modelSuffix来修改对应生成的类和文件的结尾（之前issue中有用户希望能把Mapper替换成Dao）。       
 - 全局domainObjectRenamingRule  
 ```xml
@@ -1462,22 +1467,27 @@ public class Test {
 ### 19. Lombok插件
 使用Lombok的使用可以减少很多重复代码的书写，目前项目中已大量使用。
 但Lombok的@Builder对于类的继承支持很不好，最近发现新版(>=1.18.2)已经提供了对@SuperBuilder的支持，所以新增该插件方便简写代码。
->warning: 目前很多IDE工具对@SuperBuilder支持不是很好，虽不影响正常使用，但是开发时很不友好，暂时可以使用ModelBuilderPlugin代替该功能。  
 
->warning1: @Builder注解在Lombok 版本 >= 1.18.2 的情况下才能开启，对于存在继承关系的model会自动替换成@SuperBuilder注解。  
+>warning1: @Builder注解在Lombok 版本 >= 1.18.2 的情况下才能开启，对于存在继承关系的model会自动替换成@SuperBuilder注解(目前IDEA的插件对于SuperBuilder的还不支持（作者已经安排上更新日程）, 可以开启配置supportSuperBuilderForIdea使插件在遇到@SuperBuilder注解时使用ModelBuilderPlugin替代该注解)。  
 
->warning2: 配合插件IncrementsPlugin 并且 @Builder开启的情况下，因为@SuperBuilder的一些限制，
+>warning2: 配合插件IncrementsPlugin（已不推荐使用，请使用新版[IncrementPlugin](#22-增量插件)解决该问题） 并且 @Builder开启的情况下，因为@SuperBuilder的一些限制，
 插件模拟Lombok插件生成了一些附加代码可能在某些编译器上会提示错误，请忽略（Lombok = 1.18.2 已测试）。
 
 ```xml
 <xml>
     <!-- Lombok插件 -->
     <plugin type="com.itfsw.mybatis.generator.plugins.LombokPlugin">
-        <!-- @Builder 必须在 Lombok 版本 >= 1.18.2 的情况下 -->
+        <!-- @Data 默认开启,同时插件会对子类自动附加@EqualsAndHashCode(callSuper = true)，@ToString(callSuper = true) -->
+        <property name="@Data" value="true"/>
+        <!-- @Builder 必须在 Lombok 版本 >= 1.18.2 的情况下开启，对存在继承关系的类自动替换成@SuperBuilder -->
         <property name="@Builder" value="false"/>
         <!-- @NoArgsConstructor 和 @AllArgsConstructor 使用规则和Lombok一致 -->
         <property name="@AllArgsConstructor" value="false"/>
         <property name="@NoArgsConstructor" value="false"/>
+        <!-- @Getter、@Setter、@Accessors 等使用规则参见官方文档 -->
+        <property name="@Accessors(chain = true)" value="false"/>
+        <!-- 临时解决IDEA工具对@SuperBuilder的不支持问题，开启后(默认未开启)插件在遇到@SuperBuilder注解时会调用ModelBuilderPlugin来生成相应的builder代码 -->
+        <property name="supportSuperBuilderForIdea" value="false"/>
     </plugin>
 </xml>
 ```
@@ -1511,7 +1521,7 @@ public class Test {
 >warning: 约定的注释检查规则的正则表达式如下
 ```java
 public class EnumTypeStatusPlugin {
-    public final static String REMARKS_PATTERN = ".*\\s*\\[\\s*(\\w+\\s*\\(\\s*[\\u4e00-\\u9fa5_-a-zA-Z0-9]+\\s*\\)\\s*:\\s*[\\u4e00-\\u9fa5_-a-zA-Z0-9]+\\s*\\,?\\s*)+\\s*\\]\\s*.*";
+    public final static String REMARKS_PATTERN = ".*\\s*\\[\\s*(\\w+\\s*\\(\\s*[\\u4e00-\\u9fa5_\\-a-zA-Z0-9]+\\s*\\)\\s*:\\s*[\\u4e00-\\u9fa5_\\-a-zA-Z0-9]+\\s*\\,?\\s*)+\\s*\\]\\s*.*";
 }
 
 ```
@@ -1551,6 +1561,26 @@ public class Tb {
         public String getName() {
             return this.name;
         }
+        public Field2 parseValue(Short value) {
+            if (value != null) {
+                for (Field2 item : values()) {
+                    if (item.value.equals(value)) {
+                        return item;
+                    }
+                }
+            }
+            return null;
+        }
+        public Field2 parseName(String name) {
+            if (name != null) {
+                for (Field2 item : values()) {
+                    if (item.name.equals(name)) {
+                        return item;
+                    }
+                }
+            }
+            return null;
+        }
     }
 
     public enum Status {
@@ -1572,6 +1602,26 @@ public class Tb {
         }
         public String getName() {
             return this.name;
+        }
+        public Status parseValue(Short value) {
+            if (value != null) {
+                for (Status item : values()) {
+                    if (item.value.equals(value)) {
+                        return item;
+                    }
+                }
+            }
+            return null;
+        }
+        public Status parseName(String name) {
+            if (name != null) {
+                for (Status item : values()) {
+                    if (item.name.equals(name)) {
+                        return item;
+                    }
+                }
+            }
+            return null;
         }
     }
 
@@ -1595,6 +1645,73 @@ public class Tb {
         public String getName() {
             return this.name;
         }
+        public UserType parseValue(Short value) {
+            if (value != null) {
+                for (UserType item : values()) {
+                    if (item.value.equals(value)) {
+                        return item;
+                    }
+                }
+            }
+            return null;
+        }
+        public UserType parseName(String name) {
+            if (name != null) {
+                for (UserType item : values()) {
+                    if (item.name.equals(name)) {
+                        return item;
+                    }
+                }
+            }
+            return null;
+        }
     }
 }
+```
+### 22. 增量插件
+为更新操作生成set filedxxx = filedxxx +/- inc 操作，方便某些统计字段的更新操作，常用于某些需要计数的场景,需配合（[ModelColumnPlugin](#8-数据model属性对应column获取插件)）插件使用；     
+
+插件：
+```xml
+<xml>
+    <!-- 增量插件 -->
+    <plugin type="com.itfsw.mybatis.generator.plugins.IncrementPlugin" />
+    
+    <table tableName="tb">
+        <!-- 配置需要进行增量操作的列名称（英文半角逗号分隔） -->
+        <property name="incrementColumns" value="field1,field2"/>
+    </table>
+</xml>
+```
+使用：  
+```java
+public class Test {
+    public static void main(String[] args) {
+        // 在构建更新对象时，配置了增量支持的字段会增加传入增量枚举的方法
+        Tb tb = Tb.builder()
+                .id(102)
+                .field4(new Date())
+                .build()
+                .increment(Tb.Increment.field1.inc(1)) // 字段1 统计增加1
+                .increment(Tb.Increment.field2.dec(2)); // 字段2 统计减去2
+        // 更新操作，可以是 updateByExample, updateByExampleSelective, updateByPrimaryKey
+        // , updateByPrimaryKeySelective, upsert, upsertSelective等所有涉及更新的操作
+        this.tbMapper.updateByPrimaryKey(tb);
+    }
+}
+```
+### 23. Mapper注解插件
+对官方的（[MapperAnnotationPlugin](http://www.mybatis.org/generator/reference/plugins.html)）增强，可自定义附加@Repository注解（IDEA工具对@Mapper注解支持有问题，使用@Autowired会报无法找到对应bean，附加@Repository后解决）；     
+
+插件：
+```xml
+<xml>
+    <!-- Mapper注解插件 -->
+    <plugin type="com.itfsw.mybatis.generator.plugins.MapperAnnotationPlugin">
+        <!-- @Mapper 默认开启 -->
+        <property name="@Mapper" value="true"/>
+        <!-- @Repository 默认关闭，开启后解决IDEA工具@Autowired报错 -->
+        <property name="@Repository" value="false"/>
+    </plugin>
+</xml>
 ```

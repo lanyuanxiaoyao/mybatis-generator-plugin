@@ -23,57 +23,22 @@ import org.mybatis.generator.api.dom.java.Interface;
 import org.mybatis.generator.api.dom.java.TopLevelClass;
 import org.mybatis.generator.internal.util.StringUtility;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * ---------------------------------------------------------------------------
- *
+ * <p>
  * ---------------------------------------------------------------------------
+ *
  * @author: hewei
  * @time:2019/7/9 14:30
  * ---------------------------------------------------------------------------
  */
 public class MapperAnnotationPlugin extends BasePlugin {
-    private final static Map<String, String> ANNOTATION_IMPORTS;
-
-    static {
-        ANNOTATION_IMPORTS = new HashMap<>();
-        ANNOTATION_IMPORTS.put("@Mapper", "org.apache.ibatis.annotations.Mapper");
-        ANNOTATION_IMPORTS.put("@Repository", "org.springframework.stereotype.Repository");
-    }
-
-    private List<String> annotations;
-
     /**
      * 具体执行顺序 http://www.mybatis.org/generator/reference/pluggingIn.html
-     * @param introspectedTable
-     * @return
-     */
-    @Override
-    public void initialized(IntrospectedTable introspectedTable) {
-        super.initialized(introspectedTable);
-
-        this.annotations = new ArrayList<>();
-        Properties properties = this.getProperties();
-        boolean findMapper = false;
-        for (Object key : properties.keySet()) {
-            String annotation = key.toString().trim();
-            if (annotation.startsWith("@Mapper")) {
-                findMapper = true;
-            }
-
-            if (StringUtility.isTrue(properties.getProperty(key.toString()))) {
-                this.annotations.add(annotation);
-            }
-        }
-
-        if (!findMapper) {
-            this.annotations.add(0, "@Mapper");
-        }
-    }
-
-    /**
-     * 具体执行顺序 http://www.mybatis.org/generator/reference/pluggingIn.html
+     *
      * @param interfaze
      * @param topLevelClass
      * @param introspectedTable
@@ -81,19 +46,30 @@ public class MapperAnnotationPlugin extends BasePlugin {
      */
     @Override
     public boolean clientGenerated(Interface interfaze, TopLevelClass topLevelClass, IntrospectedTable introspectedTable) {
-        for (String annotation : this.annotations) {
-            if (annotation.equals("@Mapper")) {
-                if (introspectedTable.getTargetRuntime() == IntrospectedTable.TargetRuntime.MYBATIS3) {
-                    // don't need to do this for MYBATIS3_DSQL as that runtime already adds this annotation
-                    interfaze.addImportedType(new FullyQualifiedJavaType(ANNOTATION_IMPORTS.get(annotation)));
-                    interfaze.addAnnotation(annotation);
+        Properties properties = getProperties();
+        // 和官方插件一致支持，没有配置特殊注解时默认开启@Mapper
+        if ("true".equalsIgnoreCase(properties.getProperty("@Mapper", "true")) && introspectedTable.getTargetRuntime() == IntrospectedTable.TargetRuntime.MYBATIS3) {
+            // don't need to do this for MYBATIS3_DSQL as that runtime already adds this annotation
+            interfaze.addImportedType(new FullyQualifiedJavaType("org.apache.ibatis.annotations.Mapper"));
+            interfaze.addAnnotation("@Mapper");
+        }
+
+        for (Map.Entry<Object, Object> prop : properties.entrySet()) {
+            String annotationName = prop.getKey().toString().trim();
+            String annotationImport = prop.getValue().toString().trim();
+            // TODO 兼容老版本
+            if ("@Repository".equals(annotationName) && ("true".equalsIgnoreCase(annotationImport) || "false".equalsIgnoreCase(annotationImport))) {
+                if (StringUtility.isTrue(annotationImport)) {
+                    interfaze.addImportedType(new FullyQualifiedJavaType("org.springframework.stereotype.Repository"));
+                    interfaze.addAnnotation("@Repository");
                 }
-            } else if (ANNOTATION_IMPORTS.get(annotation) != null) {
-                interfaze.addImportedType(new FullyQualifiedJavaType(ANNOTATION_IMPORTS.get(annotation)));
-                interfaze.addAnnotation(annotation);
+            } else if (!"@Mapper".equals(annotationName)) {
+                interfaze.addImportedType(new FullyQualifiedJavaType(annotationImport));
+                interfaze.addAnnotation(annotationName);
             }
         }
 
         return true;
     }
+
 }
